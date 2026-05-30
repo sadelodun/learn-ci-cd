@@ -4,10 +4,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-slim
+    strategy:
+      matrix:
+        os: [ubuntu-slim, windows-lastest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
     steps:
       - name: Checkout code
-      uses: actions/checkout@v6
+        uses: actions/checkout@v6
 
       - name: Install Build Tools
         run: |
