@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-slim, windows-lastest, macos-latest]
+        os: [ubuntu-slim, windows-latest, macos-latest]
     
     runs-on: ${{ matrix.os }}
     
@@ -14,13 +14,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Install Build Tools
+      - name: Install Build Tools (Ubuntu)
+        if: matrix.os == 'ubuntu-slim'
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential
 
+      - name: Install Build Tools (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install make mingw -y
+
       - name: Build code
-        id: build
         run: |
           echo "Building the project..."
           make
@@ -28,8 +33,8 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: build-artifacts
-          path: build/test_led
+          name: build-artifacts-${{ matrix.os }}
+          path: build/test_led*
           if-no-files-found: error
   
   test:
@@ -39,7 +44,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v7
         with:
-          name: build-artifacts
+          name: build-artifacts-ubuntu-slim
       
       - name: Make binary executable
         run: chmod +x test_led
