@@ -1,38 +1,30 @@
 CC=gcc
+CXX=g++
 CFLAGS=-Wall -Wextra -g -Iinclude
+CXXFLAGS=-Wall -Wextra -g -Iinclude
 BUILD_DIR=build
 
-APP_SRCS=$(wildcard src/*.c)
-TEST_SRCS=$(wildcard tests/*.c)
-# Ensures object files are cleanly mapped to build/src/*.o and build/tests/*.o
-APP_OBJS=$(patsubst %.c,$(BUILD_DIR)/%.o,$(APP_SRCS))
-TEST_OBJS=$(BUILD_DIR)/src/battery.o $(patsubst %.c, $(BUILD_DIR)/%.o, $(TEST_SRCS))
+# Build Targets
+TEST_TARGET=$(BUILD_DIR)/test_runner
 
-APP_TARGET=$(BUILD_DIR)/battery_monitor-$(CC)
-TEST_TARGET=$(BUILD_DIR)/test-$(CC)
+all: $(TEST_TARGET)
 
-all:  version $(APP_TARGET) $(TEST_TARGET)
-
-# Force version generation before compiling any files
-version:
-	@chmod +x scripts/*
-	@bash scripts/print_build_info.sh
-	@bash scripts/generate_version.sh
-
-# Rule to link the final executable
-$(APP_TARGET): $(APP_OBJS)
-	$(CC) -o $@ $^ 
-
-$(TEST_TARGET): $(TEST_OBJS)
-	$(CC) -o $@ $^
-
-# Pattern rule to compile .c files into .o files, handling nested directories
-$(BUILD_DIR)/%.o: %.c
+# Compile C Module
+$(BUILD_DIR)/src/notification.o: src/notification.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile C++ Test Drivers
+$(BUILD_DIR)/tests/%.o: tests/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Link C and C++ Object Files together
+$(TEST_TARGET): $(BUILD_DIR)/src/notification.o $(BUILD_DIR)/tests/test_notification.o $(BUILD_DIR)/tests/test_main.o
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) -o $@ $^
+
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f include/version.h
 
-.PHONY: all clean version
+.PHONY: all clean

@@ -1,73 +1,72 @@
-name: CI/CD Pipeline
+name: Soundbox Notification Engine CI
+
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   pull_request:
-    branches: [main, master]
+    branches: [ main, master ]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-slim]
-        compiler: [gcc, clang]
-    
-    runs-on: ${{ matrix.os }}
-    
+  # Job 1: Build the components
+  build-project:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+
+      - name: Compile Application and Test Suite
+        run: |
+          make
+
+      - name: Upload Test Runner Binary
+        uses: actions/upload-artifact@v4
         with:
-          fetch-depth: 0
-
-      - name: Install Build Tools (Ubuntu)
-        if: matrix.os == 'ubuntu-slim'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential clang
-
-      - name: Install Build Tools (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install make llvm mingw -y
-        shell: bash
-
-      - name: Run Build System
-        run: |
-          echo "Building the project..."
-          make CC=${{ matrix.compiler }}
-
-      - name: Make Binary Executable
-        run: chmod +x build/test-${{ matrix.compiler }}
-
-      - name: Run Embedded Test Binary
-        run: |
-          echo "Running tests..."
-          ./build/test-${{ matrix.compiler }}
-
-      - name: Upload Test Binary Artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-binary-${{ matrix.os }}-${{ matrix.compiler }}
-          path: build/test-${{ matrix.compiler }}
+          name: test-runner-executable
+          path: build/test_runner
           if-no-files-found: error
-  
-  # test:
-  #   runs-on: ubuntu-slim
-  #   needs: build
-  #   strategy:
-  #     matrix:
-  #       compiler: [gcc, clang]
-  #   steps:
-  #     - name: Download Build Artifacts
-  #       uses: actions/download-artifact@v7
-  #       with:
-  #         name: test-binary-ubuntu-slim-${{ matrix.compiler }}
-      
-  #     - name: Make binary executable
-  #       run: chmod +x test-${{ matrix.compiler }}
 
-  #     - name: Run Embedded Test Binary
-  #       run: |
-  #         echo "Running tests..."
-  #         ./test-${{ matrix.compiler }}
+  # Job 2: Run Tests using the compiled binary
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: build-project
+    steps:
+      - name: Download Test Runner Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: test-runner-executable
+          path: build/
+
+      - name: Ensure Execution Permissions
+        run: chmod +x build/test_runner
+
+      - name: Run Test Suite and Generate Report
+        run: |
+          ./build/test_runner
+
+      - name: Upload Raw Report File
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-txt
+          path: build/test-report.txt
+          if-no-files-found: error
+
+  # Job 3: Process and Archive Test Report
+  upload-report:
+    runs-on: ubuntu-latest
+    needs: run-tests
+    steps:
+      - name: Download Test Report
+        uses: actions/download-artifact@v4
+        with:
+          name: test-report-txt
+          path: build/
+
+      - name: Display Report Summary in CI Output Logs
+        run: |
+          cat build/test-report.txt
+
+      - name: Archive Final Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Final-Notification-Engine-Test-Report
+          path: build/test-report.txt
