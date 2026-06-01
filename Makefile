@@ -1,30 +1,35 @@
-CC=gcc
-CXX=g++
-CFLAGS=-Wall -Wextra -g -Iinclude
-CXXFLAGS=-Wall -Wextra -g -Iinclude
-BUILD_DIR=build
+# FIX: Clear any implicit Windows defaults for CC if they point to the non-existent 'cc'
+ifeq ($(CC),cc)
+    CC = gcc
+endif
 
-# Build Targets
-TEST_TARGET=$(BUILD_DIR)/test_runner
+CC ?= gcc
+CXX ?= g++
+CFLAGS = -Wall -Wextra -Werror -g -Iinclude
+CXXFLAGS = -Wall -Wextra -Werror -g -Iinclude
+BUILD_DIR = build
 
-all: $(TEST_TARGET)
+APP_OBJS = $(BUILD_DIR)/src/session.o
+TEST_OBJS = $(BUILD_DIR)/tests/test_session.o
 
-# Compile C Module
-$(BUILD_DIR)/src/notification.o: src/notification.c
+TARGET_TEST = $(BUILD_DIR)/test_runner
+
+all: $(TARGET_TEST)
+
+$(BUILD_DIR)/src/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Compile C++ Test Drivers
 $(BUILD_DIR)/tests/%.o: tests/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Link C and C++ Object Files together
-$(TEST_TARGET): $(BUILD_DIR)/src/notification.o $(BUILD_DIR)/tests/test_notification.o $(BUILD_DIR)/tests/test_main.o
+$(TARGET_TEST): $(APP_OBJS) $(TEST_OBJS)
 	@mkdir -p $(BUILD_DIR)
 	$(CXX) -o $@ $^
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -rf reports
 
 .PHONY: all clean
