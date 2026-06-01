@@ -1,10 +1,10 @@
 # 1. FIX: Keep this active to clean up default implicit runner assignments
-# ifeq ($(origin CC), default)
-#     CC = gcc
-# endif
-# ifeq ($(origin CXX), default)
-#     CXX = g++
-# endif
+ifeq ($(origin CC), default)
+    CC = gcc
+endif
+ifeq ($(origin CXX), default)
+    CXX = g++
+endif
 
 CFLAGS = -Wall -Wextra -Werror -g -Iinclude
 CXXFLAGS = -Wall -Wextra -Werror -g -Iinclude
