@@ -36,31 +36,38 @@ jobs:
         run: |
           echo "Building the project..."
           make CC=${{ matrix.compiler }}
-    
 
-      - name: Upload Test Binary Artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-binary-${{ matrix.os }}
-          path: build/test*
-          if-no-files-found: error
-  
-  test:
-    runs-on: ubuntu-slim
-    needs: build
-    strategy:
-      matrix:
-        compiler: [gcc, clang]
-    steps:
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: test-binary-ubuntu-slim-${{ matrix.compiler }}
-      
-      - name: Make binary executable
-        run: chmod +x test-${{ matrix.compiler }}
+      - name: Make Binary Executable
+        run: chmod +x build/test-${{ matrix.compiler }}
 
       - name: Run Embedded Test Binary
         run: |
           echo "Running tests..."
-          ./test-${{ matrix.compiler }}
+          ./build/test-${{ matrix.compiler }}
+
+      - name: Upload Test Binary Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-binary-${{ matrix.os }}-${{ matrix.compiler }}
+          path: build/test-${{ matrix.compiler }}
+          if-no-files-found: error
+  
+  # test:
+  #   runs-on: ubuntu-slim
+  #   needs: build
+  #   strategy:
+  #     matrix:
+  #       compiler: [gcc, clang]
+  #   steps:
+  #     - name: Download Build Artifacts
+  #       uses: actions/download-artifact@v7
+  #       with:
+  #         name: test-binary-ubuntu-slim-${{ matrix.compiler }}
+      
+  #     - name: Make binary executable
+  #       run: chmod +x test-${{ matrix.compiler }}
+
+  #     - name: Run Embedded Test Binary
+  #       run: |
+  #         echo "Running tests..."
+  #         ./test-${{ matrix.compiler }}
