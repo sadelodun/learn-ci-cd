@@ -1,7 +1,10 @@
 # FIX: Clear any implicit Windows defaults for CC if they point to the non-existent 'cc'
-ifeq ($(CC),cc)
-    CC = gcc
-endif
+# ifeq ($(origin CC), default)
+#     CC = gcc
+# endif
+# ifeq ($(origin CXX), default)
+#     CXX = g++
+# endif
 
 CC ?= gcc
 CXX ?= g++
