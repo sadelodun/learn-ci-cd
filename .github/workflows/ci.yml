@@ -1,18 +1,23 @@
 name: CI/CD Pipeline
 on:
   push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-slim, windows-latest, macos-latest]
+        os: [ubuntu-slim]
     
     runs-on: ${{ matrix.os }}
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install Build Tools (Ubuntu)
         if: matrix.os == 'ubuntu-slim'
@@ -25,15 +30,15 @@ jobs:
         run: |
           choco install make mingw -y
 
-      - name: Build code
+      - name: Run Build System
         run: |
           echo "Building the project..."
           make
 
-      - name: Upload artifacts
+      - name: Upload Test Binary Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: build-artifacts-${{ matrix.os }}
+          name: test-binary-${{ matrix.os }}
           path: build/test_led*
           if-no-files-found: error
   
@@ -41,15 +46,15 @@ jobs:
     runs-on: ubuntu-slim
     needs: build
     steps:
-      - name: Download build artifacts
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v7
         with:
-          name: build-artifacts-ubuntu-slim
+          name: test-binary-ubuntu-slim
       
       - name: Make binary executable
         run: chmod +x test_led
 
-      - name: Run test
+      - name: Run Embedded Test Binary
         run: |
           echo "Running tests..."
           ./test_led
