@@ -15,8 +15,8 @@ APP_SRC = $(wildcard src/*.c)
 TEST_SRC = $(wildcard tests/*.cpp)
 
 # 3. FIX: Fixed patsubst syntax order, reference wrappers, and mapped them into $(BUILD_DIR)
-APP_OBJS = $(patsubst %.c, $(BUILD_DIR)/src/%.o, $(APP_SRC))
-TEST_OBJS = $(patsubst %.cpp, $(BUILD_DIR)/tests/%.o, $(TEST_SRC))
+APP_OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(APP_SRC))
+TEST_OBJS = $(patsubst %.cpp, $(BUILD_DIR)/%.o, $(TEST_SRC))
 
 TARGET_TEST = $(BUILD_DIR)/test_runner
 
