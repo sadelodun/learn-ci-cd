@@ -52,7 +52,7 @@ jobs:
           name: test-binary-ubuntu-slim
       
       - name: Make binary executable
-        run: chmod +x test_led
+        run: chmod +x test*
 
       - name: Run Embedded Test Binary
         run: |
