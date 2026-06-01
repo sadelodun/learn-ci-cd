@@ -6,10 +6,10 @@ APP_SRCS=$(wildcard src/*.c)
 TEST_SRCS=$(wildcard tests/*.c)
 # Ensures object files are cleanly mapped to build/src/*.o and build/tests/*.o
 APP_OBJS=$(patsubst %.c,$(BUILD_DIR)/%.o,$(APP_SRCS))
-TEST_OBJS=src/battery.o $(patsubst %.c, $(BUILD_DIR)/%.o, $(TEST_SRCS))
+TEST_OBJS=$(BUILD_DIR)/src/battery.o $(patsubst %.c, $(BUILD_DIR)/%.o, $(TEST_SRCS))
 
-APP_TARGET=$(BUILD_DIR)/battery_monitor
-TEST_TARGET=$(BUILD_DIR)/test
+APP_TARGET=$(BUILD_DIR)/battery_monitor-$(CC)
+TEST_TARGET=$(BUILD_DIR)/test-$(CC)
 
 all:  version $(APP_TARGET) $(TEST_TARGET)
 
